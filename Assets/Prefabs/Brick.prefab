@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6769746860599164891}
   - component: {fileID: 1030236387301371436}
   - component: {fileID: 7041473100140910449}
+  - component: {fileID: -6800576535584082531}
   m_Layer: 0
   m_Name: Brick
   m_TagString: Untagged
@@ -53,7 +54,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -111,3 +112,23 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 4, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &-6800576535584082531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8999286084713339727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c84d74983fa7184f8b18ccbd9aefcb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BrickStates:
+  - {fileID: 21300000, guid: 32dd60324eca91d40846f55be653ad4e, type: 3}
+  - {fileID: 21300000, guid: ab05534fc263bff41af4f1ac5a0ad07b, type: 3}
+  - {fileID: 21300000, guid: 78c68a88f8c6e3d4482230d65f139c7e, type: 3}
+  - {fileID: 21300000, guid: 4ff422f30e57d944bbb323dcaf989920, type: 3}
+  - {fileID: 21300000, guid: ca58f2db94b8475429d830078dff0451, type: 3}
+  - {fileID: 21300000, guid: 907ee5ae833e202488c5cfd5d3568340, type: 3}
+  ScorePoints: 100

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 
-public class StartScreenScripts : MonoBehaviour
+public class BreakoutSceneLoader : MonoBehaviour
 {
     public void LoadGameScene()
     {
@@ -11,5 +11,13 @@ public class StartScreenScripts : MonoBehaviour
     public void LoadTutorialScene()
     {
         SceneManager.LoadScene("Tutorial");
+    }
+    public void LoadStartScreen()
+    {
+        SceneManager.LoadScene("StartScreen");
+    }
+    public void LoadGameOver()
+    {
+        SceneManager.LoadScene("GameOver");
     }
 }

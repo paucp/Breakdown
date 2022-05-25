@@ -26,11 +26,11 @@ public class Paddle : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
             direction = Vector2.left;
         }
-        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+        else if (Input.GetKey(KeyCode.RightArrow))
         {
             direction = Vector2.right;
         }
@@ -44,7 +44,11 @@ public class Paddle : MonoBehaviour
     {
         if (direction != Vector2.zero)
         {
-            rigidbody.AddForce(direction * speed);
+            rigidbody.velocity = (direction * speed);
+        }
+        else
+        {
+            rigidbody.velocity = new Vector3(0.0f, rigidbody.velocity.y);
         }
     }
 
@@ -60,12 +64,12 @@ public class Paddle : MonoBehaviour
             float offset = paddlePosition.x - contactPoint.x;
             float maxOffset = collision.otherCollider.bounds.size.x / 2;
 
-            float currentAngle = Vector2.SignedAngle(Vector2.down, ball.rigidbody.velocity);
+            float currentAngle = Vector2.SignedAngle(Vector2.down, ball.RigidBody.velocity);
             float bounceAngle = (offset / maxOffset) * maxBounceAngle;
             float newAngle = Mathf.Clamp(currentAngle + bounceAngle, -maxBounceAngle, maxBounceAngle);
 
             Quaternion rotation = Quaternion.AngleAxis(newAngle, Vector3.forward);
-            ball.rigidbody.velocity = rotation * Vector2.down * ball.rigidbody.velocity.magnitude;
+            ball.RigidBody.velocity = rotation * Vector2.down * ball.RigidBody.velocity.magnitude;
         }
     }
 
