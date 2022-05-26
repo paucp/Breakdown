@@ -1,9 +1,20 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
+    private const int DefaultBuffTimeSeconds = 10;
+
+    public GameObject TopDamageObject;
+    public GameObject DoubleScoreObject;
+    public GameObject BiggerPaddleObject;
+    public GameObject BiggerBallObject;
+    private Dictionary<BuffType, GameObject> BuffObjects;
+
+    public Dictionary<BuffType, float> ActiveBuffs = new Dictionary<BuffType, float>();
+
     public AudioSource AudioSource;
     public AudioClip HitAudioClip;
     public AudioClip BrickBrokenAudioClip;
@@ -18,7 +29,6 @@ public class GameController : MonoBehaviour
     public TextMeshProUGUI TimeText;
 
     private float Timer = 0;
-    private int TimerSeconds = 0;
 
     public int Score = 0;
     public int Lives = 3;
@@ -27,32 +37,108 @@ public class GameController : MonoBehaviour
     {
         SceneManager.sceneLoaded += OnLevelLoaded;
     }
-    private void ResetBallAndPaddle()
-    {
-        Ball.ResetBall();
-        Paddle.ResetPaddle();
-    }
     private void ResetGame()
     {
         Score = 0;
         Lives = 3;
+        Timer = 0;
         LivesText.text = "Lives: 3";
         TimeText.text = "Time: 0";
         ScoreText.text = "Score: 0";
         Ball.Speed = 10f;
         ResetBallAndPaddle();
     }
+    private void EnableBuff(BuffType buffType)
+    {
+        BuffObjects[buffType].SetActive(false);
+        ActiveBuffs.Add(buffType, 0);
+        if (buffType == BuffType.BiggerBall)
+        {
+            Ball.transform.localScale = new Vector3(4, 4, 0);
+        }
+        else if (buffType == BuffType.BiggerPaddle)
+        {
+            Paddle.transform.localScale = new Vector3(1.5f, 1, 0);
+        }
+        else if(buffType == BuffType.TopDamage)
+        {
+            Ball.GetComponent<SpriteRenderer>().color = new Color(255, 0, 0);
+            Ball.GetComponentInChildren<TrailRenderer>().startColor = new Color(255, 0, 0);
+            Ball.GetComponentInChildren<TrailRenderer>().endColor = new Color(255, 0, 0);
+        }
+    }
+    private void DisableBuff(BuffType buffType)
+    {
+        ActiveBuffs.Remove(buffType);
+        if (buffType == BuffType.BiggerBall)
+        {
+            Ball.transform.localScale = new Vector3(1, 1);
+        }
+        else if (buffType == BuffType.BiggerPaddle)
+        {
+            Paddle.transform.localScale = new Vector3(1, 1);
+        }
+        else if (buffType == BuffType.TopDamage)
+        {
+            Ball.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255);
+            Ball.GetComponentInChildren<TrailRenderer>().startColor = new Color(255, 255, 255);
+            Ball.GetComponentInChildren<TrailRenderer>().endColor = new Color(255, 255, 255);
+        }
+    }
+    private int GetUnBuffedBrick()
+    {
+        int brickNum = (int)Random.Range(0, Bricks.Length);
+        while (Bricks[brickNum].BuffType != BuffType.None)
+            brickNum = (int)Random.Range(0, Bricks.Length);
+        return brickNum;
+    }
+    private void GiveBuff(int BrickNum, BuffType BuffType)
+    {
+        BuffObjects[BuffType].SetActive(true);
+        Bricks[BrickNum].BuffType = BuffType;
+        BuffObjects[BuffType].transform.position = Bricks[BrickNum].transform.position;
+        BuffObjects[BuffType].transform.parent = Bricks[BrickNum].transform;
+    }
+    private void AssignBuffs()
+    {
+        foreach (Brick b in Bricks)
+            b.BuffType = BuffType.None;
+        GiveBuff(GetUnBuffedBrick(), BuffType.TopDamage);
+        GiveBuff(GetUnBuffedBrick(), BuffType.DoubleScore);
+        GiveBuff(GetUnBuffedBrick(), BuffType.BiggerBall);
+        GiveBuff(GetUnBuffedBrick(), BuffType.BiggerPaddle);
+    }
     private void Start()
     {
         Bricks = FindObjectsOfType<Brick>();
+        BuffObjects = new Dictionary<BuffType, GameObject>() {
+            { BuffType.TopDamage, TopDamageObject },
+            { BuffType.DoubleScore, DoubleScoreObject },
+            { BuffType.BiggerBall, BiggerBallObject },
+            { BuffType.BiggerPaddle, BiggerPaddleObject },
+        };
+        AssignBuffs();
         ResetGame();
     }
 
     private void Update()
     {
         Timer += Time.deltaTime;
-        TimerSeconds = (int)(Timer % 60);
-        TimeText.text = "Time: " + TimerSeconds;
+        TimeText.text = "Time: " + (int)(Timer % 60);
+        //if ((Timer % 60) % 30 == 0) AssignBuffs();
+
+        foreach (var buff in ActiveBuffs)
+        {
+            ActiveBuffs[buff.Key] += Time.deltaTime;
+            if (ActiveBuffs[buff.Key] % 60 >= DefaultBuffTimeSeconds)
+                DisableBuff(buff.Key);
+        }
+    }
+
+    private void ResetBallAndPaddle()
+    {
+        Ball.ResetBall();
+        Paddle.ResetPaddle();
     }
     private void OnLevelLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -83,9 +169,11 @@ public class GameController : MonoBehaviour
     }
     public void NotifyHitBrick(Brick Brick)
     {
-        Score += Brick.BrickScorePoints;
-        ScoreText.text = "Score: " + Score;
+        if (ActiveBuffs.ContainsKey(BuffType.DoubleScore))
+            Score += (Brick.BrickScorePoints * 2);
+        else Score += Brick.BrickScorePoints;
 
+        ScoreText.text = "Score: " + Score;
         if (MapCleared())
         {
             // WIN
@@ -99,8 +187,12 @@ public class GameController : MonoBehaviour
     {
         BallParticleSystem.Play();
     }
-    public void NotifyBrickBroken()
+    public void NotifyBrickBroken(BuffType BrickBuffType)
     {
+        if (BrickBuffType != BuffType.None)
+        {
+            EnableBuff(BrickBuffType);
+        }
         AudioSource.PlayOneShot(BrickBrokenAudioClip);
         Ball.Speed += 0.2f;
     }

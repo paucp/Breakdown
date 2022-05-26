@@ -23,7 +23,7 @@ public class Ball : MonoBehaviour
     public void ResetBall()
     {
         RigidBody.velocity = Vector2.zero;
-        transform.position = Vector2.zero;
+        transform.position = new Vector2(0, 6f);
         Invoke(nameof(SetRandomTrajectory), 1f);
     }
     private void SetRandomTrajectory()

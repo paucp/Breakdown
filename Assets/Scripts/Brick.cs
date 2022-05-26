@@ -1,5 +1,14 @@
 ﻿using UnityEngine;
 
+
+public enum BuffType
+{
+    None,
+    TopDamage,
+    DoubleScore,
+    BiggerPaddle,
+    BiggerBall
+}
 [RequireComponent(typeof(BoxCollider2D))]
 public class Brick : MonoBehaviour
 {
@@ -9,6 +18,7 @@ public class Brick : MonoBehaviour
     public int BrickHealth { get; private set; }
     public int BrickScorePoints = 100;
 
+    public BuffType BuffType = BuffType.None;
     private void Awake()
     {
         SpriteRenderer = GetComponent<SpriteRenderer>();
@@ -26,12 +36,13 @@ public class Brick : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.name == "Ball") {
-            BrickHealth--;
+            if (GameController.ActiveBuffs.ContainsKey(BuffType.TopDamage)) BrickHealth = 0;
+            else BrickHealth--;
             GameController.NotifyHitBrick(this);
             if (BrickHealth <= 0)
             {
                 gameObject.SetActive(false);
-                GameController.NotifyBrickBroken();
+                GameController.NotifyBrickBroken(this.BuffType);
             }
             else SpriteRenderer.sprite = BrickStates[BrickHealth - 1];
         }
