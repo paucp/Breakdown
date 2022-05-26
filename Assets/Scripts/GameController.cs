@@ -6,6 +6,9 @@ public class GameController : MonoBehaviour
 {
     public AudioSource AudioSource;
     public AudioClip HitAudioClip;
+    public AudioClip BrickBrokenAudioClip;
+    public AudioClip BallLostAudioClip;
+    public ParticleSystem BallParticleSystem;
     public Ball Ball;
     public Paddle Paddle;
     public Brick[] Bricks { get; private set; }
@@ -36,10 +39,12 @@ public class GameController : MonoBehaviour
         LivesText.text = "Lives: 3";
         TimeText.text = "Time: 0";
         ScoreText.text = "Score: 0";
+        Ball.Speed = 10f;
         ResetBallAndPaddle();
     }
     private void Start()
     {
+        Bricks = FindObjectsOfType<Brick>();
         ResetGame();
     }
 
@@ -49,7 +54,6 @@ public class GameController : MonoBehaviour
         TimerSeconds = (int)(Timer % 60);
         TimeText.text = "Time: " + TimerSeconds;
     }
-
     private void OnLevelLoaded(Scene scene, LoadSceneMode mode)
     {
         if (SceneManager.GetSceneByName("Game").isLoaded)
@@ -61,6 +65,7 @@ public class GameController : MonoBehaviour
     public void BallOutOfBounds()
     {
         Lives--;
+        AudioSource.PlayOneShot(BallLostAudioClip);
         LivesText.text = "Lives: " + Lives;
         if (Lives > 0) ResetBallAndPaddle();
         else GameOver();
@@ -69,23 +74,34 @@ public class GameController : MonoBehaviour
     {
         SceneManager.LoadScene("GameOver");
     }
-
-    public void Hit(Brick Brick)
-    {
-        Score += Brick.ScorePoints;
-        ScoreText.text = "Score: " + Score;
-        // PLAY SOUND
-        AudioSource.PlayOneShot(HitAudioClip);
-        if (MapCleared()) {
-            // WIN
-        }
-    }
-
     private bool MapCleared()
     {
         for (int i = 0; i < Bricks.Length; i++)
             if (Bricks[i].gameObject.activeInHierarchy)
                 return false;
         return true;
+    }
+    public void NotifyHitBrick(Brick Brick)
+    {
+        Score += Brick.BrickScorePoints;
+        ScoreText.text = "Score: " + Score;
+
+        if (MapCleared())
+        {
+            // WIN
+        }
+    }
+    public void NotifyBallHit()
+    {
+        AudioSource.PlayOneShot(HitAudioClip);
+    }
+    public void NotifyBallHitBrick()
+    {
+        BallParticleSystem.Play();
+    }
+    public void NotifyBrickBroken()
+    {
+        AudioSource.PlayOneShot(BrickBrokenAudioClip);
+        Ball.Speed += 0.2f;
     }
 }
