@@ -20,4 +20,12 @@ public class BreakoutSceneLoader : MonoBehaviour
     {
         SceneManager.LoadScene("GameOver");
     }
+    public void LoadWinScene()
+    {
+        SceneManager.LoadScene("Win");
+    }
+    public void ExitGame()
+    {
+        Application.Quit();
+    }
 }

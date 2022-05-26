@@ -66,6 +66,10 @@ public class GameController : MonoBehaviour
             Ball.GetComponentInChildren<TrailRenderer>().startColor = new Color(255, 0, 0);
             Ball.GetComponentInChildren<TrailRenderer>().endColor = new Color(255, 0, 0);
         }
+        else if(buffType == BuffType.DoubleScore)
+        {
+            Paddle.GetComponent<SpriteRenderer>().color = new Color(0, 255, 0);
+        }
     }
     private void DisableBuff(BuffType buffType)
     {
@@ -83,6 +87,10 @@ public class GameController : MonoBehaviour
             Ball.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255);
             Ball.GetComponentInChildren<TrailRenderer>().startColor = new Color(255, 255, 255);
             Ball.GetComponentInChildren<TrailRenderer>().endColor = new Color(255, 255, 255);
+        }
+        else if (buffType == BuffType.DoubleScore)
+        {
+            Paddle.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255);
         }
     }
     private int GetUnBuffedBrick()
@@ -125,8 +133,6 @@ public class GameController : MonoBehaviour
     {
         Timer += Time.deltaTime;
         TimeText.text = "Time: " + (int)(Timer % 60);
-        //if ((Timer % 60) % 30 == 0) AssignBuffs();
-
         foreach (var buff in ActiveBuffs)
         {
             ActiveBuffs[buff.Key] += Time.deltaTime;
