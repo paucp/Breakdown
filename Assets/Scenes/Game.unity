@@ -12595,6 +12595,7 @@ MonoBehaviour:
   LivesText: {fileID: 1645116532}
   ScoreText: {fileID: 398352383}
   TimeText: {fileID: 1279679942}
+  ScorePopTextPrefab: {fileID: 3803302586713922091, guid: 9df607105a517864dac07945cde32499, type: 3}
   Score: 0
   Lives: 3
 --- !u!4 &1751689685

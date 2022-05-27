@@ -38,11 +38,10 @@ public class Brick : MonoBehaviour
         if (collision.gameObject.name == "Ball") {
             if (GameController.ActiveBuffs.ContainsKey(BuffType.TopDamage)) BrickHealth = 0;
             else BrickHealth--;
-            GameController.NotifyHitBrick(this);
             if (BrickHealth <= 0)
             {
                 gameObject.SetActive(false);
-                GameController.NotifyBrickBroken(this.BuffType);
+                GameController.NotifyBrickBroken(this);
             }
             else SpriteRenderer.sprite = BrickStates[BrickHealth - 1];
         }

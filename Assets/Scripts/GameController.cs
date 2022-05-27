@@ -5,7 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
-    private const int DefaultBuffTimeSeconds = 10;
+    private readonly object locker = new Object();
+    private const int DefaultBuffTimeSeconds = 15;
+
 
     public GameObject TopDamageObject;
     public GameObject DoubleScoreObject;
@@ -27,6 +29,8 @@ public class GameController : MonoBehaviour
     public TextMeshProUGUI LivesText;
     public TextMeshProUGUI ScoreText;
     public TextMeshProUGUI TimeText;
+
+    public GameObject ScorePopTextPrefab;
 
     private float Timer = 0;
 
@@ -51,7 +55,7 @@ public class GameController : MonoBehaviour
     private void EnableBuff(BuffType buffType)
     {
         BuffObjects[buffType].SetActive(false);
-        ActiveBuffs.Add(buffType, 0);
+        lock (locker) ActiveBuffs.Add(buffType, 0);
         if (buffType == BuffType.BiggerBall)
         {
             Ball.transform.localScale = new Vector3(4, 4, 0);
@@ -60,20 +64,20 @@ public class GameController : MonoBehaviour
         {
             Paddle.transform.localScale = new Vector3(1.5f, 1, 0);
         }
-        else if(buffType == BuffType.TopDamage)
+        else if (buffType == BuffType.TopDamage)
         {
             Ball.GetComponent<SpriteRenderer>().color = new Color(255, 0, 0);
             Ball.GetComponentInChildren<TrailRenderer>().startColor = new Color(255, 0, 0);
             Ball.GetComponentInChildren<TrailRenderer>().endColor = new Color(255, 0, 0);
         }
-        else if(buffType == BuffType.DoubleScore)
+        else if (buffType == BuffType.DoubleScore)
         {
             Paddle.GetComponent<SpriteRenderer>().color = new Color(0, 255, 0);
         }
     }
     private void DisableBuff(BuffType buffType)
     {
-        ActiveBuffs.Remove(buffType);
+        lock (locker) ActiveBuffs.Remove(buffType);
         if (buffType == BuffType.BiggerBall)
         {
             Ball.transform.localScale = new Vector3(1, 1);
@@ -133,11 +137,14 @@ public class GameController : MonoBehaviour
     {
         Timer += Time.deltaTime;
         TimeText.text = "Time: " + (int)(Timer % 60);
-        foreach (var buff in ActiveBuffs)
+        lock (locker)
         {
-            ActiveBuffs[buff.Key] += Time.deltaTime;
-            if (ActiveBuffs[buff.Key] % 60 >= DefaultBuffTimeSeconds)
-                DisableBuff(buff.Key);
+            foreach (var buff in ActiveBuffs)
+            {
+                ActiveBuffs[buff.Key] += Time.deltaTime;
+                if (ActiveBuffs[buff.Key] % 60 >= DefaultBuffTimeSeconds)
+                    DisableBuff(buff.Key);
+            }
         }
     }
 
@@ -173,18 +180,6 @@ public class GameController : MonoBehaviour
                 return false;
         return true;
     }
-    public void NotifyHitBrick(Brick Brick)
-    {
-        if (ActiveBuffs.ContainsKey(BuffType.DoubleScore))
-            Score += (Brick.BrickScorePoints * 2);
-        else Score += Brick.BrickScorePoints;
-
-        ScoreText.text = "Score: " + Score;
-        if (MapCleared())
-        {
-            // WIN
-        }
-    }
     public void NotifyBallHit()
     {
         AudioSource.PlayOneShot(HitAudioClip);
@@ -193,13 +188,22 @@ public class GameController : MonoBehaviour
     {
         BallParticleSystem.Play();
     }
-    public void NotifyBrickBroken(BuffType BrickBuffType)
+    public void NotifyBrickBroken(Brick Brick)
     {
-        if (BrickBuffType != BuffType.None)
-        {
-            EnableBuff(BrickBuffType);
-        }
         AudioSource.PlayOneShot(BrickBrokenAudioClip);
         Ball.Speed += 0.2f;
+
+        if (Brick.BuffType != BuffType.None)
+            EnableBuff(Brick.BuffType);
+
+        int GainedScore = Brick.BrickScorePoints;
+        if (ActiveBuffs.ContainsKey(BuffType.DoubleScore))
+            GainedScore *= 2;
+        Score += GainedScore;
+        GameObject prefab = Instantiate(ScorePopTextPrefab, Brick.transform.position, Quaternion.identity);
+        prefab.GetComponentInChildren<TextMeshPro>().text = GainedScore.ToString();
+
+        ScoreText.text = "Score: " + Score;
+        if (MapCleared()) SceneManager.LoadScene("Win");
     }
 }
