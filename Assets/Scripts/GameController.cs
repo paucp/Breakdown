@@ -136,7 +136,7 @@ public class GameController : MonoBehaviour
     private void Update()
     {
         Timer += Time.deltaTime;
-        TimeText.text = "Time: " + (int)(Timer % 60);
+        TimeText.text = "Time: " + (int)(Timer);
         lock (locker)
         {
             foreach (var buff in ActiveBuffs)
